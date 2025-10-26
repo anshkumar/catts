@@ -181,37 +181,28 @@ class LongCatDecoderONNX:
         return self.decode(semantic_codes, acoustic_codes)
 
 
-def create_longcat_onnx_models(
-    encoder_path: str,
+def create_longcat_decoder(
     decoder_path: str,
     use_tensorrt: bool = False,
     device_id: int = 0,
     batch_size: int = 1
-) -> Tuple[LongCatEncoderONNX, LongCatDecoderONNX]:
+) -> LongCatDecoderONNX:
     """
-    Convenience function to create both encoder and decoder ONNX models.
+    Convenience function to create LongCat ONNX decoder.
     
     Args:
-        encoder_path: Path to ONNX encoder
         decoder_path: Path to ONNX decoder
         use_tensorrt: Whether to use TensorRT
         device_id: CUDA device ID
         batch_size: Batch size for optimization
         
     Returns:
-        Tuple of (encoder, decoder)
+        LongCat decoder instance
     """
     # Determine output rate from decoder filename
     output_rate = 24000
     if '16k' in os.path.basename(decoder_path):
         output_rate = 16000
-    
-    encoder = LongCatEncoderONNX(
-        model_path=encoder_path,
-        use_tensorrt=use_tensorrt,
-        device_id=device_id,
-        batch_size=batch_size
-    )
     
     decoder = LongCatDecoderONNX(
         model_path=decoder_path,
@@ -221,5 +212,5 @@ def create_longcat_onnx_models(
         output_rate=output_rate
     )
     
-    return encoder, decoder
+    return decoder
 
