@@ -1,0 +1,34 @@
+# Dataset
+# TTS_dataset: "/mnt/disk3/Orpheus-TTS/combined_tts_dataset_finetune"
+TTS_dataset: "/workspace/longcat_combined_tts_dataset_pretrain_v1"
+
+# Voice type and language
+voice_type: "all"
+
+# Model
+model_name: "canopylabs/3b-hi-pretrain-research_release"
+# model_name: "checkpoints_hindi_pretrain_v4"
+
+# Training Args
+epochs: 1
+batch_size: 1  # Increased from 1 to 4 for better GPU utilization (4-8x speedup)
+number_processes: 4
+pad_token: 128263
+save_steps: 5000
+save_total_limit: 2
+learning_rate: 5.0e-5
+lr_scheduler_type: "constant"
+# lr_scheduler_type: "cosine"
+
+# LongCat Token Configuration
+# Set to true when training from scratch with LongCat dataset
+# Set to false when fine-tuning on a model that already has these tokens
+add_custom_tokens: true
+n_acoustic_codebooks: 3  # Number of acoustic codebooks (1-3)
+base_llama_tokenizer: "meta-llama/Llama-3.2-3B"  # Base tokenizer to use when replacing
+
+# Naming and paths
+save_folder: "checkpoints_hindi_pretrain_v1"
+project_name: "longcat-hindi-tts-v1"
+run_name: "hindi-pretrain-v1"
+resume_from_checkpoint: false

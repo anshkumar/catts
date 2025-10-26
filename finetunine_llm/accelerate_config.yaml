@@ -1,0 +1,13 @@
+compute_environment: LOCAL_MACHINE
+distributed_type: MULTI_GPU
+mixed_precision: bf16
+num_processes: 8  # Set to number of GPUs you have
+machine_rank: 0
+num_machines: 1
+main_process_ip: null
+main_process_port: null
+rdzv_backend: static
+same_network: true
+main_training_function: main
+use_cpu: false
+dynamo_backend: 'NO'

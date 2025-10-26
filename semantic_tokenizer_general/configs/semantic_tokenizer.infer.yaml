@@ -1,0 +1,39 @@
+feat_dim: &feat_dim 80
+left: &left 0
+right: &right 0
+stride: &stride 1
+delta_order: &delta_order 0
+
+feature:
+    fbank:
+        dither: 0.0
+        frame_length: 25
+        frame_shift: 10
+        preemphasis: 0.97
+        freq: 16000
+        high_freq: -200
+        low_freq: 40
+        num_mel_bins: *feat_dim
+
+    cmvn_file: "ckpts/LongCatAudioCodec_encoder_cmvn.npy"
+
+
+encoder:
+    type: VGGtf_encoder
+    VGGtf_encoder:
+        feat_dim: *feat_dim
+        delta_order: *delta_order
+        left: *left
+        right: *right
+        stride: *stride
+        subsampling: conv2d
+        num_conv_layers: 2
+        conv2d_stride: 2,3
+
+        d_model: 1280
+        nhead: 20
+        num_encoder_layers: 26
+        dim_feedforward: 5120
+        dropout: 0.0
+        layer_drop: 0.0
+        activation: gelu
