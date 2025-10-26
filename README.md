@@ -227,6 +227,5 @@ python train.py
 ```bash
 cd finetunine_llm
 
-```bash
 accelerate launch --config_file accelerate_config.yaml train.py
 ```
