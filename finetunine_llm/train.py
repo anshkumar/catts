@@ -145,8 +145,9 @@ if add_custom_tokens:
     print(f"{'='*70}")
     
     # LongCat token configuration
+    # Adaptive Grouped RVQ uses product quantization: 90 × 90 = 8,100 per codebook
     SEMANTIC_CODEBOOK_SIZE = 8192
-    ACOUSTIC_CODEBOOK_SIZE = 1024
+    ACOUSTIC_CODEBOOK_SIZE = 8100
     NUM_SPECIAL_TOKENS = 10
     
     total_audio_tokens = SEMANTIC_CODEBOOK_SIZE + (n_acoustic_codebooks * ACOUSTIC_CODEBOOK_SIZE)

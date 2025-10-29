@@ -31,9 +31,12 @@ AUDIO_TOKENS_START = TOKENISER_LENGTH + 10  # 128266
 
 # LongCat token configuration
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# For LLM training, you need to add these tokens:
+# LongCat uses Adaptive Grouped RVQ with product quantization:
+# - Each acoustic codebook uses 2 internal codebooks of size 90
+# - Effective size per acoustic codebook: 90 × 90 = 8,100
 #
-# number_add_tokens = 11274  # 8192 (semantic) + 3×1024 (acoustic) + 10 (special)
+# For LLM training, add these tokens:
+# number_add_tokens = 32502  # 8192 (semantic) + 3×8100 (acoustic) + 10 (special)
 # new_tokens = [f"<custom_token_{i}>" for i in range(0, number_add_tokens + 1)]
 # tokenizer.add_tokens(new_tokens)
 # model.resize_token_embeddings(len(tokenizer))
@@ -41,14 +44,14 @@ AUDIO_TOKENS_START = TOKENISER_LENGTH + 10  # 128266
 # Token ID ranges:
 #   128257-128266: Special tokens (10)
 #   128266-136457: Semantic tokens (8,192)
-#   136458-137481: Acoustic codebook 0 (1,024)
-#   137482-138505: Acoustic codebook 1 (1,024)  
-#   138506-139529: Acoustic codebook 2 (1,024)
+#   136458-144557: Acoustic codebook 0 (8,100)
+#   144558-152657: Acoustic codebook 1 (8,100)  
+#   152658-160757: Acoustic codebook 2 (8,100)
 #
-# Total: 11,274 new tokens (vs 28,682 for SNAC - 60.7% fewer!)
+# Total: 32,502 new tokens (vs 28,682 for SNAC)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SEMANTIC_CODEBOOK_SIZE = 8192
-ACOUSTIC_CODEBOOK_SIZE = 1024
+ACOUSTIC_CODEBOOK_SIZE = 8100  # 90 × 90 from Adaptive Grouped RVQ product quantization
 
 
 def load_audio_with_longcat(
@@ -108,9 +111,9 @@ def load_audio_with_longcat(
             all_codes.append(int(semantic_np[i]) + AUDIO_TOKENS_START)
             
             # Acoustic tokens (offset by semantic codebook size)
-            semantic_codebook_size = 8192
+            # Each acoustic codebook has 8100 codes (90 × 90 from product quantization)
             for q in range(n_acoustic_codebooks):
-                offset = AUDIO_TOKENS_START + semantic_codebook_size + (q * 1024)
+                offset = AUDIO_TOKENS_START + SEMANTIC_CODEBOOK_SIZE + (q * ACOUSTIC_CODEBOOK_SIZE)
                 all_codes.append(int(acoustic_np[q, i]) + offset)
         
         return all_codes
@@ -236,8 +239,9 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B")
 
     # Add custom tokens (same as in train.py)
+    # LongCat uses Adaptive Grouped RVQ with product quantization: 90 × 90 = 8,100
     SEMANTIC_CODEBOOK_SIZE = 8192
-    ACOUSTIC_CODEBOOK_SIZE = 1024
+    ACOUSTIC_CODEBOOK_SIZE = 8100
     NUM_SPECIAL_TOKENS = 10
     
     total_audio_tokens = SEMANTIC_CODEBOOK_SIZE + (args.n_acoustic_codebooks * ACOUSTIC_CODEBOOK_SIZE)
@@ -247,6 +251,11 @@ def main():
     num_added = tokenizer.add_tokens(new_tokens)
     print(f"✓ Added {num_added} custom tokens to tokenizer")
     print(f"✓ Total tokenizer vocabulary size: {len(tokenizer):,}")
+    print(f"  Token breakdown:")
+    print(f"    - Semantic:  {SEMANTIC_CODEBOOK_SIZE:,} tokens")
+    print(f"    - Acoustic:  {args.n_acoustic_codebooks} × {ACOUSTIC_CODEBOOK_SIZE:,} = {args.n_acoustic_codebooks * ACOUSTIC_CODEBOOK_SIZE:,} tokens")
+    print(f"    - Special:   {NUM_SPECIAL_TOKENS} tokens")
+    print(f"    - Total new: {number_add_tokens:,} tokens")
 
     # Initialize LongCat encoder
     print("\nInitializing LongCat encoder...")

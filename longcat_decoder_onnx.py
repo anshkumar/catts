@@ -9,8 +9,6 @@ import os
 import numpy as np
 import torch
 import onnxruntime as ort
-from typing import List, Tuple, Optional
-from huggingface_hub import hf_hub_download
 
 class LongCatDecoderONNX:
     """
