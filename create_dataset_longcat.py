@@ -278,7 +278,7 @@ def main():
     
     for i, ds_config in enumerate(dataset_configs):
         dataset_path = ds_config.get('dataset_path')
-        speaker_name = ds_config.get('speaker_name', f'speaker_{i}')
+        speaker_name = ds_config.get('speaker_name')
         num_samples = ds_config.get('num_samples')
         normalize = ds_config.get('normalize', False)
         language = ds_config.get('language')
@@ -310,15 +310,26 @@ def main():
             
             print(f"Processing {len(df)} samples...")
             
+            if speaker_name == "" or speaker_name is None:
+                override_speaker_name = True
+            else:
+                override_speaker_name = False
+            
             for idx, row in df.iterrows():
                 if idx % 100 == 0:
                     print(f"  Progress: {idx}/{len(df)}")
+                
+                # Override speaker name if needed (for multi-speaker datasets)
+                if override_speaker_name:
+                    current_speaker_name = row.get('speaker_name', f'speaker_{idx}')
+                else:
+                    current_speaker_name = speaker_name
                 
                 entry = process_entry(
                     file_id=row.get('file_id', f'entry_{idx}'),
                     text=row['text'],
                     audio_path=row['audio_path'],
-                    speaker_name=speaker_name,
+                    speaker_name=current_speaker_name,
                     longcat_codec=longcat_codec,
                     tokenizer=tokenizer,
                     normalize=normalize,
